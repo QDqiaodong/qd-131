@@ -111,15 +111,21 @@ const handleEdit = (binding: BindingDetail) => {
 };
 const handleCancel = async (binding: BindingDetail) => {
  try {
+ // 取消原因必填：不填或只填空格时拦截，不允许进入下一步
  const { value: reason } = await ElMessageBox.prompt('请输入取消原因', '取消绑定', {
- inputPlaceholder: '请输入原因'
+ inputPlaceholder: '请输入原因',
+ inputValidator: (value: string) => !!(value && value.trim()),
+ inputErrorMessage: '取消原因不能为空'
  });
- await bindingApi.cancel(binding.id, reason, 'admin');
+ await bindingApi.cancel(binding.id, reason.trim(), 'admin');
  ElMessage.success('绑定已取消');
  fetchData();
  }
- catch {
- // cancelled
+ catch (error: any) {
+ // 用户主动关闭对话框不提示；后端校验拦截时展示失败原因
+ if (error === 'cancel' || error === 'close') return;
+ const message = error?.response?.data?.message || '取消失败';
+ ElMessage.error(message);
  }
 };
 const handleConflictCheck = async () => {

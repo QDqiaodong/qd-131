@@ -173,15 +173,22 @@ public class ScheduleBindingService {
     
     @Transactional
     public void cancelBinding(Long id, String reason, String operator) {
+        // 取消原因为必填项：先校验原因，未填写直接拦截，不执行取消、不写变更日志
+        if (reason == null || reason.isBlank()) {
+            log.warn("取消绑定被拦截，未填写取消原因: bindingId={}", id);
+            throw new IllegalArgumentException("取消原因不能为空，请先填写取消原因再执行取消");
+        }
+
         PropScheduleBinding binding = bindingRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("绑定记录不存在: " + id));
-        
+
         binding.setStatus("cancelled");
         bindingRepository.save(binding);
-        
+
+        // 原因校验通过且取消落库后，才写入变更日志
         saveChangeLog(id, binding.getPropId(), binding.getCrewId(),
                 binding.getStartDate(), binding.getEndDate(), binding.getStartDate(), binding.getEndDate(),
-                "cancel", reason, operator, false, null);
+                "cancel", reason.trim(), operator, false, null);
         
         updatePropStatusAfterCancel(binding.getPropId());
         

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { ApiResponse, Prop, Crew, BindingDetail, ScheduleChangeLog, ConflictCheckResponse, PropCreateRequest, CrewCreateRequest, BindingCreateRequest, BindingUpdateRequest } from '@/types'
+import type { ApiResponse, Prop, Crew, BindingDetail, ScheduleChangeLog, ConflictCheckResponse, BarcodeCheckResponse, PropCreateRequest, CrewCreateRequest, BindingCreateRequest, BindingUpdateRequest } from '@/types'
 
 const api = axios.create({
   baseURL: '/api',
@@ -23,6 +23,7 @@ export const propApi = {
   },
   getById: (id: number) => api.get<ApiResponse<Prop>>(`/props/${id}`),
   getByCode: (code: string) => api.get<ApiResponse<Prop>>(`/props/code/${code}`),
+  checkBarcode: (code: string) => api.get<ApiResponse<BarcodeCheckResponse>>('/props/barcode-check', { params: { code } }),
   create: (data: PropCreateRequest) => api.post<ApiResponse<Prop>>('/props', data),
   update: (id: number, data: PropCreateRequest) => api.put<ApiResponse<Prop>>(`/props/${id}`, data),
   delete: (id: number) => api.delete<ApiResponse<void>>(`/props/${id}`)

@@ -1,11 +1,14 @@
 package com.example.filmprop.service;
 
 import com.example.filmprop.dto.request.PropCreateRequest;
+import com.example.filmprop.dto.response.BarcodeCheckResponse;
 import com.example.filmprop.entity.Prop;
 import com.example.filmprop.repository.PropRepository;
+import com.example.filmprop.util.BarcodeValidator;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,23 +31,54 @@ public class PropService {
     
     @Transactional
     public Prop createProp(PropCreateRequest request) {
-        if (propRepository.findByPropCode(request.getPropCode()).isPresent()) {
-            throw new IllegalArgumentException("道具编号已存在: " + request.getPropCode());
+        String propCode = request.getPropCode() == null ? null : request.getPropCode().trim();
+
+        // 码值必须来自扫码枪解析出的合法条码，否则不允许建档保存
+        if (!BarcodeValidator.isValid(propCode)) {
+            log.warn("登记道具被拒绝，条码不合法或扫码未成功: {}", request.getPropCode());
+            throw new IllegalArgumentException("条码不合法或扫码未成功，无法保存");
         }
-        
+
+        // 库内已有相同码值时拦截，不允许重复建档
+        if (propRepository.findByPropCode(propCode).isPresent()) {
+            log.warn("登记道具被拒绝，道具编号重复: {}", propCode);
+            throw new IllegalArgumentException("道具编号重复: " + propCode);
+        }
+
         Prop prop = new Prop();
-        prop.setPropCode(request.getPropCode());
+        prop.setPropCode(propCode);
         prop.setPropName(request.getPropName());
         prop.setSceneType(request.getSceneType());
         prop.setMaterial(request.getMaterial());
         prop.setSpecification(request.getSpecification());
         prop.setQuantity(request.getQuantity());
         prop.setStatus("available");
-        
-        Prop savedProp = propRepository.save(prop);
+
+        Prop savedProp;
+        try {
+            savedProp = propRepository.saveAndFlush(prop);
+        } catch (DataIntegrityViolationException e) {
+            // 并发场景下数据库唯一约束兜底，同样按编号重复拦截
+            log.warn("登记道具被唯一约束拦截，道具编号重复: {}", propCode);
+            throw new IllegalArgumentException("道具编号重复: " + propCode);
+        }
         cacheProp(savedProp);
         log.info("创建道具: {}", savedProp.getPropCode());
         return savedProp;
+    }
+
+    /**
+     * 扫码后预校验：码值是否合法、是否已存在相同编号。
+     */
+    public BarcodeCheckResponse checkBarcode(String code) {
+        if (!BarcodeValidator.isValid(code)) {
+            return new BarcodeCheckResponse(false, false, "条码不合法或扫码未成功");
+        }
+        String normalized = code.trim();
+        if (propRepository.findByPropCode(normalized).isPresent()) {
+            return new BarcodeCheckResponse(true, true, "道具编号重复: " + normalized);
+        }
+        return new BarcodeCheckResponse(true, false, "条码可用");
     }
     
     public Prop getPropById(Long id) {
@@ -76,7 +110,7 @@ public class PropService {
         if (request != null) {
             if (!prop.getPropCode().equals(request.getPropCode()) &&
                 propRepository.findByPropCode(request.getPropCode()).isPresent()) {
-                throw new IllegalArgumentException("道具编号已存在: " + request.getPropCode());
+                throw new IllegalArgumentException("道具编号重复: " + request.getPropCode());
             }
             
             prop.setPropCode(request.getPropCode());

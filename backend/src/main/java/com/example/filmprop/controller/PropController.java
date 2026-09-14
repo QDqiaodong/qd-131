@@ -2,6 +2,7 @@ package com.example.filmprop.controller;
 
 import com.example.filmprop.dto.request.PropCreateRequest;
 import com.example.filmprop.dto.response.ApiResponse;
+import com.example.filmprop.dto.response.BarcodeCheckResponse;
 import com.example.filmprop.entity.Prop;
 import com.example.filmprop.service.PropService;
 import jakarta.validation.Valid;
@@ -44,6 +45,11 @@ public class PropController {
     @GetMapping("/code/{propCode}")
     public ApiResponse<Prop> getPropByCode(@PathVariable String propCode) {
         return ApiResponse.success(propService.getPropByCode(propCode));
+    }
+
+    @GetMapping("/barcode-check")
+    public ApiResponse<BarcodeCheckResponse> checkBarcode(@RequestParam String code) {
+        return ApiResponse.success(propService.checkBarcode(code));
     }
     
     @PutMapping("/{id}")

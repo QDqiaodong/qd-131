@@ -67,6 +67,12 @@ export interface ConflictCheckResponse {
   conflictingEndDate: string
 }
 
+export interface BarcodeCheckResponse {
+  valid: boolean
+  duplicate: boolean
+  message: string
+}
+
 export interface ApiResponse<T> {
   code: number
   message: string

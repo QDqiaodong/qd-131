@@ -1,4 +1,4 @@
-<script setup lang="ts">import { ref, onMounted } from 'vue';
+<script setup lang="ts">import { ref, computed, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { changeLogApi, propApi, crewApi } from '@/api';
 import type { ScheduleChangeLog, Prop, Crew } from '@/types';
@@ -12,9 +12,16 @@ const changeTypeMap: Record<string, {
  class: string;
 }> = {
  create: { label: '创建', class: 'el-tag--success' },
- update: { label: '更新', class: 'el-tag--warning' },
+ update: { label: '改期', class: 'el-tag--warning' },
  cancel: { label: '取消', class: 'el-tag--danger' }
 };
+// 创建、改期、取消各计一条：仓管看三个数就知道档期被动过多少手。
+// 新产生一条取消只会让 cancel +1，create/update 不受影响。
+const stats = computed(() => ({
+ create: logs.value.filter(l => l.changeType === 'create').length,
+ update: logs.value.filter(l => l.changeType === 'update').length,
+ cancel: logs.value.filter(l => l.changeType === 'cancel').length
+}));
 const getPropName = (propId: number): string => {
  const prop = props.value.find(p => p.id === propId);
  return prop ? prop.propName : '未知道具';
@@ -59,6 +66,21 @@ onMounted(fetchData);
 
 <template>
   <div class="change-log-view">
+    <div class="stats-cards">
+      <el-card shadow="hover" class="stat-card stat-create">
+        <div class="stat-label">创建次数</div>
+        <div class="stat-value">{{ stats.create }}</div>
+      </el-card>
+      <el-card shadow="hover" class="stat-card stat-update">
+        <div class="stat-label">改期次数</div>
+        <div class="stat-value">{{ stats.update }}</div>
+      </el-card>
+      <el-card shadow="hover" class="stat-card stat-cancel">
+        <div class="stat-label">取消次数</div>
+        <div class="stat-value">{{ stats.cancel }}</div>
+      </el-card>
+    </div>
+
     <div class="toolbar">
       <el-button type="primary" @click="fetchData">
         <el-icon><Refresh /></el-icon>
@@ -126,6 +148,44 @@ onMounted(fetchData);
 <style scoped>
 .change-log-view {
   padding: 10px;
+}
+
+.stats-cards {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.stat-card {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-card :deep(.el-card__body) {
+  padding: 15px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.stat-create .stat-value {
+  color: #67c23a;
+}
+
+.stat-update .stat-value {
+  color: #e6a23c;
+}
+
+.stat-cancel .stat-value {
+  color: #f56c6c;
 }
 
 .toolbar {

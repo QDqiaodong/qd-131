@@ -11,9 +11,11 @@ const form = ref<CrewCreateRequest>({
  crewName: '',
  projectName: '',
  director: '',
+ genre: '',
  startDate: '',
  endDate: ''
 });
+const genres = ['古装', '现代'];
 const statusMap: Record<string, {
  label: string;
  class: string;
@@ -43,6 +45,7 @@ const handleAdd = () => {
  crewName: '',
  projectName: '',
  director: '',
+ genre: '',
  startDate: '',
  endDate: ''
  };
@@ -55,6 +58,7 @@ const handleEdit = (crew: Crew) => {
  crewName: crew.crewName,
  projectName: crew.projectName || '',
  director: crew.director || '',
+ genre: crew.genre || '',
  startDate: crew.startDate || '',
  endDate: crew.endDate || ''
  };
@@ -77,6 +81,10 @@ const handleSubmit = async () => {
  try {
  if (!form.value.crewName) {
  ElMessage.warning('请填写剧组名称');
+ return;
+ }
+ if (!form.value.genre) {
+ ElMessage.warning('请选择剧组片种');
  return;
  }
  if (isEdit.value && currentId.value) {
@@ -111,6 +119,11 @@ onMounted(fetchCrews);
       <el-table-column prop="crewName" label="剧组名称" width="150" />
       <el-table-column prop="projectName" label="项目名称" width="200" />
       <el-table-column prop="director" label="导演" width="100" />
+      <el-table-column prop="genre" label="片种" width="90">
+        <template #default="{ row }">
+          <el-tag :type="row.genre === '古装' ? 'warning' : 'primary'">{{ row.genre || '未登记' }}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column prop="startDate" label="拍摄开始" width="120" />
       <el-table-column prop="endDate" label="拍摄结束" width="120" />
       <el-table-column prop="status" label="状态" width="100">
@@ -141,6 +154,11 @@ onMounted(fetchCrews);
         </el-form-item>
         <el-form-item label="导演">
           <el-input v-model="form.director" placeholder="请输入导演姓名" />
+        </el-form-item>
+        <el-form-item label="片种" required>
+          <el-select v-model="form.genre" placeholder="请选择片种">
+            <el-option v-for="g in genres" :key="g" :label="g" :value="g" />
+          </el-select>
         </el-form-item>
         <el-form-item label="拍摄开始日期">
           <el-date-picker v-model="form.startDate" type="date" placeholder="选择日期" />

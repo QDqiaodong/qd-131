@@ -16,6 +16,7 @@ export interface Crew {
   crewName: string
   projectName: string
   director: string
+  genre: string
   startDate: string
   endDate: string
   status: string
@@ -31,6 +32,7 @@ export interface BindingDetail {
   sceneType: string
   crewId: number
   crewName: string
+  crewGenre: string
   projectName: string
   startDate: string
   endDate: string
@@ -92,6 +94,7 @@ export interface CrewCreateRequest {
   crewName: string
   projectName?: string
   director?: string
+  genre: string
   startDate?: string
   endDate?: string
 }

@@ -44,6 +44,20 @@ const filteredBindings = computed(() => {
  }
  return result;
 });
+// 片种核对：提交绑定前对照剧组片种与道具场景类型，不一致即为片种不符
+const selectedProp = computed(() => props.value.find(p => p.id === form.value.propId) || null);
+const selectedCrew = computed(() => crews.value.find(c => c.id === form.value.crewId) || null);
+const genreMismatch = computed(() => {
+ if (!selectedProp.value || !selectedCrew.value) return false;
+ return !selectedCrew.value.genre || selectedCrew.value.genre !== selectedProp.value.sceneType;
+});
+const genreMismatchMessage = computed(() => {
+ if (!genreMismatch.value || !selectedProp.value || !selectedCrew.value) return '';
+ if (!selectedCrew.value.genre) {
+ return `片种核对失败：剧组【${selectedCrew.value.crewName}】未登记片种，请先完善剧组片种信息`;
+ }
+ return `片种不符：剧组【${selectedCrew.value.crewName}】片种为【${selectedCrew.value.genre}】，道具【${selectedProp.value.propName}】适用场景为【${selectedProp.value.sceneType}】，跨片种绑定将被拦截`;
+});
 const fetchData = async () => {
  loading.value = true;
  try {
@@ -113,6 +127,10 @@ const handleConflictCheck = async () => {
  ElMessage.warning('请选择道具和日期');
  return;
  }
+ if (genreMismatch.value) {
+ ElMessage.error(genreMismatchMessage.value);
+ return;
+ }
  try {
  const response = await bindingApi.checkConflict(
  form.value.propId,
@@ -136,6 +154,11 @@ const handleSubmit = async () => {
  try {
  if (!form.value.propId || !form.value.crewId || !form.value.startDate || !form.value.endDate) {
  ElMessage.warning('请填写完整信息');
+ return;
+ }
+ // 片种不符的跨片种绑定在前端直接拦截，不提交后端
+ if (!isEdit.value && genreMismatch.value) {
+ ElMessage.error(genreMismatchMessage.value);
  return;
  }
  if (isEdit.value && currentId.value) {
@@ -192,6 +215,11 @@ onMounted(fetchData);
         </template>
       </el-table-column>
       <el-table-column prop="crewName" label="剧组名称" width="150" />
+      <el-table-column prop="crewGenre" label="剧组片种" width="100">
+        <template #default="{ row }">
+          <el-tag :type="row.crewGenre === '古装' ? 'warning' : 'primary'">{{ row.crewGenre || '未登记' }}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column prop="projectName" label="项目名称" width="200" />
       <el-table-column prop="startDate" label="开始日期" width="120" />
       <el-table-column prop="endDate" label="结束日期" width="120" />
@@ -220,13 +248,16 @@ onMounted(fetchData);
       <el-form :model="form" label-width="100px">
         <el-form-item label="道具" required>
           <el-select v-model="form.propId" placeholder="请选择道具">
-            <el-option v-for="p in props" :key="p.id" :label="`${p.propCode} - ${p.propName}`" :value="p.id" />
+            <el-option v-for="p in props" :key="p.id" :label="`${p.propCode} - ${p.propName}（${p.sceneType}）`" :value="p.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="剧组" required>
           <el-select v-model="form.crewId" placeholder="请选择剧组">
-            <el-option v-for="c in crews" :key="c.id" :label="`${c.crewName} - ${c.projectName || ''}`" :value="c.id" />
+            <el-option v-for="c in crews" :key="c.id" :label="`${c.crewName} - ${c.projectName || ''}（片种：${c.genre || '未登记'}）`" :value="c.id" />
           </el-select>
+        </el-form-item>
+        <el-form-item v-if="genreMismatch && !isEdit">
+          <el-alert :title="genreMismatchMessage" type="error" :closable="false" show-icon />
         </el-form-item>
         <el-form-item label="开始日期" required>
           <el-date-picker v-model="form.startDate" type="date" placeholder="选择日期" />
@@ -246,7 +277,7 @@ onMounted(fetchData);
       <template #footer>
         <el-button @click="showDialog = false">取消</el-button>
         <el-button type="info" @click="handleConflictCheck">冲突检测</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" @click="handleSubmit" :disabled="genreMismatch && !isEdit">确定</el-button>
       </template>
     </el-dialog>
   </div>

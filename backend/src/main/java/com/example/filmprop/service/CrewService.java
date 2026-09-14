@@ -36,6 +36,7 @@ public class CrewService {
         crew.setCrewName(request.getCrewName());
         crew.setProjectName(request.getProjectName());
         crew.setDirector(request.getDirector());
+        crew.setGenre(request.getGenre());
         crew.setStartDate(request.getStartDate());
         crew.setEndDate(request.getEndDate());
         crew.setStatus("active");
@@ -76,6 +77,7 @@ public class CrewService {
         crew.setCrewName(request.getCrewName());
         crew.setProjectName(request.getProjectName());
         crew.setDirector(request.getDirector());
+        crew.setGenre(request.getGenre());
         crew.setStartDate(request.getStartDate());
         crew.setEndDate(request.getEndDate());
         
@@ -99,6 +101,7 @@ public class CrewService {
         redisTemplate.opsForHash().put(key, "crewName", crew.getCrewName());
         redisTemplate.opsForHash().put(key, "projectName", crew.getProjectName());
         redisTemplate.opsForHash().put(key, "director", crew.getDirector());
+        redisTemplate.opsForHash().put(key, "genre", crew.getGenre());
         redisTemplate.opsForHash().put(key, "startDate", crew.getStartDate());
         redisTemplate.opsForHash().put(key, "endDate", crew.getEndDate());
         redisTemplate.opsForHash().put(key, "status", crew.getStatus());
@@ -112,6 +115,7 @@ public class CrewService {
             crew.setCrewName((String) redisTemplate.opsForHash().get(key, "crewName"));
             crew.setProjectName((String) redisTemplate.opsForHash().get(key, "projectName"));
             crew.setDirector((String) redisTemplate.opsForHash().get(key, "director"));
+            crew.setGenre((String) redisTemplate.opsForHash().get(key, "genre"));
             crew.setStartDate((java.time.LocalDate) redisTemplate.opsForHash().get(key, "startDate"));
             crew.setEndDate((java.time.LocalDate) redisTemplate.opsForHash().get(key, "endDate"));
             crew.setStatus((String) redisTemplate.opsForHash().get(key, "status"));

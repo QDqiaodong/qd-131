@@ -42,7 +42,10 @@ public class ScheduleBindingService {
     public BindingDetailResponse createBinding(BindingCreateRequest request) {
         Prop prop = propService.getPropById(request.getPropId());
         Crew crew = crewService.getCrewById(request.getCrewId());
-        
+
+        // 片种核对：剧组片种与道具场景类型不一致时拦截，绑定不落库
+        checkGenreMatch(prop, crew);
+
         if (request.getStartDate().isAfter(request.getEndDate())) {
             throw new IllegalArgumentException("开始日期不能晚于结束日期");
         }
@@ -74,6 +77,27 @@ public class ScheduleBindingService {
         return buildBindingDetail(savedBinding, prop, crew);
     }
     
+    /**
+     * 片种核对：剧组片种必须与道具场景类型一致，跨片种绑定一律拦截。
+     * 剧组未登记片种时无法完成核对，按核对不通过处理，同样拦截。
+     */
+    private void checkGenreMatch(Prop prop, Crew crew) {
+        String crewGenre = crew.getGenre();
+        if (crewGenre == null || crewGenre.isBlank()) {
+            log.warn("绑定被拦截，剧组未登记片种: propId={}, crewId={}", prop.getId(), crew.getId());
+            throw new IllegalArgumentException(String.format(
+                    "片种核对失败：剧组【%s】未登记片种，无法与道具【%s】（场景类型：%s）核对，请先完善剧组片种信息",
+                    crew.getCrewName(), prop.getPropName(), prop.getSceneType()));
+        }
+        if (!crewGenre.equals(prop.getSceneType())) {
+            log.warn("绑定被拦截，片种不符: propId={}, sceneType={}, crewId={}, genre={}",
+                    prop.getId(), prop.getSceneType(), crew.getId(), crewGenre);
+            throw new IllegalArgumentException(String.format(
+                    "片种不符：剧组【%s】片种为【%s】，道具【%s】适用场景为【%s】，跨片种绑定已拦截",
+                    crew.getCrewName(), crewGenre, prop.getPropName(), prop.getSceneType()));
+        }
+    }
+
     public ConflictCheckResponse checkConflict(Long propId, LocalDate startDate, LocalDate endDate, Long excludeBindingId) {
         ConflictCheckResponse response = new ConflictCheckResponse();
         response.setHasConflict(false);
@@ -248,6 +272,7 @@ public class ScheduleBindingService {
         response.setSceneType(prop.getSceneType());
         response.setCrewId(crew.getId());
         response.setCrewName(crew.getCrewName());
+        response.setCrewGenre(crew.getGenre());
         response.setProjectName(crew.getProjectName());
         response.setStartDate(binding.getStartDate());
         response.setEndDate(binding.getEndDate());

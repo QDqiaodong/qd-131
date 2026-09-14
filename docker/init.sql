@@ -22,12 +22,14 @@ CREATE TABLE IF NOT EXISTS crews (
     crew_name VARCHAR(100) NOT NULL UNIQUE COMMENT '剧组名称',
     project_name VARCHAR(200) COMMENT '项目名称',
     director VARCHAR(50) COMMENT '导演',
+    genre VARCHAR(50) NOT NULL COMMENT '片种：古装、现代',
     start_date DATE COMMENT '拍摄开始日期',
     end_date DATE COMMENT '拍摄结束日期',
     status VARCHAR(20) DEFAULT 'active' COMMENT '状态：active-拍摄中，completed-已完成',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_crew_name (crew_name),
+    INDEX idx_genre (genre),
     INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='剧组信息表';
 

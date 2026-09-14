@@ -11,6 +11,7 @@ public class BindingDetailResponse {
     private String sceneType;
     private Long crewId;
     private String crewName;
+    private String crewGenre;
     private String projectName;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -74,6 +75,14 @@ public class BindingDetailResponse {
 
     public void setCrewName(String crewName) {
         this.crewName = crewName;
+    }
+
+    public String getCrewGenre() {
+        return crewGenre;
+    }
+
+    public void setCrewGenre(String crewGenre) {
+        this.crewGenre = crewGenre;
     }
 
     public String getProjectName() {

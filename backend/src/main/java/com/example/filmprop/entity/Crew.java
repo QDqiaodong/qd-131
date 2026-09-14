@@ -20,7 +20,10 @@ public class Crew {
     
     @Column(name = "director", length = 50)
     private String director;
-    
+
+    @Column(name = "genre", length = 50)
+    private String genre;
+
     @Column(name = "start_date")
     private LocalDate startDate;
     
@@ -77,6 +80,14 @@ public class Crew {
 
     public void setDirector(String director) {
         this.director = director;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
     }
 
     public LocalDate getStartDate() {

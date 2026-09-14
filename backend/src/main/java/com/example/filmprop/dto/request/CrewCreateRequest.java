@@ -11,7 +11,10 @@ public class CrewCreateRequest {
     private String projectName;
     
     private String director;
-    
+
+    @NotBlank(message = "剧组片种不能为空")
+    private String genre;
+
     private LocalDate startDate;
     
     private LocalDate endDate;
@@ -38,6 +41,14 @@ public class CrewCreateRequest {
 
     public void setDirector(String director) {
         this.director = director;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
     }
 
     public LocalDate getStartDate() {

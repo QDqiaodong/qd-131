@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS prop_schedule_bindings (
     status VARCHAR(20) DEFAULT 'active' COMMENT '状态：active-生效中，completed-已完成，cancelled-已取消',
     binding_type VARCHAR(20) DEFAULT 'formal' COMMENT '绑定类型：formal-正式绑定，temporary-临时借用',
     remark VARCHAR(500) COMMENT '备注',
+    version BIGINT NOT NULL DEFAULT 0 COMMENT '乐观锁版本号',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (prop_id) REFERENCES props(id) ON DELETE CASCADE,

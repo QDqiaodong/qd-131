@@ -7,7 +7,10 @@ import java.time.LocalDate;
 public class BindingUpdateRequest {
     @NotNull(message = "绑定ID不能为空")
     private Long id;
-    
+
+    @NotNull(message = "占用版本号不能为空，请刷新后重试")
+    private Long version;
+
     private LocalDate startDate;
     
     private LocalDate endDate;
@@ -26,6 +29,14 @@ public class BindingUpdateRequest {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 
     public LocalDate getStartDate() {

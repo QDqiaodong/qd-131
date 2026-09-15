@@ -18,6 +18,7 @@ public class BindingDetailResponse {
     private String status;
     private String bindingType;
     private String remark;
+    private Long version;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -131,6 +132,14 @@ public class BindingDetailResponse {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -14,12 +14,14 @@ import com.example.filmprop.repository.ScheduleChangeLogRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -128,10 +130,15 @@ public class ScheduleBindingService {
     public BindingDetailResponse updateBinding(BindingUpdateRequest request) {
         PropScheduleBinding binding = bindingRepository.findById(request.getId())
                 .orElseThrow(() -> new EntityNotFoundException("绑定记录不存在: " + request.getId()));
-        
+
+        // 乐观锁：占用在本页面打开后被别人先保存时，拒绝后保存的一方覆盖其日期
+        if (!Objects.equals(request.getVersion(), binding.getVersion())) {
+            throw new ObjectOptimisticLockingFailureException(PropScheduleBinding.class, request.getId());
+        }
+
         Prop prop = propService.getPropById(binding.getPropId());
         Crew crew = crewService.getCrewById(binding.getCrewId());
-        
+
         LocalDate originalStartDate = binding.getStartDate();
         LocalDate originalEndDate = binding.getEndDate();
         
@@ -163,7 +170,7 @@ public class ScheduleBindingService {
             binding.setRemark(request.getRemark());
         }
         
-        PropScheduleBinding updatedBinding = bindingRepository.save(binding);
+        PropScheduleBinding updatedBinding = bindingRepository.saveAndFlush(binding);
         log.info("更新道具绑定: bindingId={}", request.getId());
         
         saveChangeLog(request.getId(), binding.getPropId(), binding.getCrewId(),
@@ -324,6 +331,7 @@ public class ScheduleBindingService {
         response.setStatus(binding.getStatus());
         response.setBindingType(binding.getBindingType());
         response.setRemark(binding.getRemark());
+        response.setVersion(binding.getVersion());
         response.setCreatedAt(binding.getCreatedAt());
         response.setUpdatedAt(binding.getUpdatedAt());
         return response;

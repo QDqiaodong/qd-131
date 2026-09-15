@@ -32,7 +32,12 @@ public class PropScheduleBinding {
     
     @Column(name = "remark", length = 500)
     private String remark;
-    
+
+    /** 乐观锁版本号：防止两人同时改日期时后保存覆盖先保存 */
+    @Version
+    @Column(name = "version", nullable = false, columnDefinition = "BIGINT NOT NULL DEFAULT 0")
+    private Long version = 0L;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -112,6 +117,14 @@ public class PropScheduleBinding {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 
     public LocalDateTime getCreatedAt() {

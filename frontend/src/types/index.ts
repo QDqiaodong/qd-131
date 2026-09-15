@@ -39,6 +39,7 @@ export interface BindingDetail {
   status: string
   bindingType: string
   remark: string
+  version: number
   createdAt: string
   updatedAt: string
 }
@@ -128,6 +129,7 @@ export interface BindingCreateRequest {
 
 export interface BindingUpdateRequest {
   id: number
+  version: number
   startDate?: string
   endDate?: string
   bindingType?: string

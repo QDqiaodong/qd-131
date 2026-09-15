@@ -9,6 +9,7 @@ const loading = ref(false);
 const showDialog = ref(false);
 const isEdit = ref(false);
 const currentId = ref<number | null>(null);
+const currentVersion = ref(0);
 const searchCrewName = ref('');
 const searchStartDate = ref('');
 const searchEndDate = ref('');
@@ -86,6 +87,7 @@ const fetchData = async () => {
 const handleAdd = () => {
  isEdit.value = false;
  currentId.value = null;
+ currentVersion.value = 0;
  form.value = {
  propId: 0,
  crewId: 0,
@@ -96,9 +98,9 @@ const handleAdd = () => {
  };
  showDialog.value = true;
 };
-const handleEdit = (binding: BindingDetail) => {
- isEdit.value = true;
+const fillEditForm = (binding: BindingDetail) => {
  currentId.value = binding.id;
+ currentVersion.value = binding.version;
  form.value = {
  propId: binding.propId,
  crewId: binding.crewId,
@@ -107,6 +109,10 @@ const handleEdit = (binding: BindingDetail) => {
  bindingType: binding.bindingType,
  remark: binding.remark
  };
+};
+const handleEdit = (binding: BindingDetail) => {
+ isEdit.value = true;
+ fillEditForm(binding);
  showDialog.value = true;
 };
 const handleCancel = async (binding: BindingDetail) => {
@@ -170,6 +176,7 @@ const handleSubmit = async () => {
  if (isEdit.value && currentId.value) {
  const updateReq: BindingUpdateRequest = {
  id: currentId.value,
+ version: currentVersion.value,
  startDate: form.value.startDate,
  endDate: form.value.endDate,
  bindingType: form.value.bindingType,
@@ -187,6 +194,21 @@ const handleSubmit = async () => {
  }
  catch (error: any) {
  const message = error?.response?.data?.message || '操作失败';
+ if (error?.response?.status === 409 && isEdit.value && currentId.value) {
+ // 后保存失败时回填先保存者的最新日期，避免继续拿旧表单重试
+ try {
+ const latestRes = await bindingApi.getById(currentId.value);
+ if (latestRes.data.code === 200) {
+ fillEditForm(latestRes.data.data);
+ ElMessage.warning(message);
+ await fetchData();
+ return;
+ }
+ }
+ catch {
+ // 最新数据拉取失败时沿用统一错误提示
+ }
+ }
  ElMessage.error(message);
  }
 };

@@ -118,3 +118,38 @@ export interface BindingUpdateRequest {
   changeReason?: string
   operator?: string
 }
+
+export interface ImportBatch {
+  id: number
+  fileName: string
+  operator: string
+  totalRows: number
+  passedRows: number
+  failedRows: number
+  writtenRows: number
+  notWrittenRows: number
+  status: string
+  createdAt: string
+  committedAt: string
+}
+
+export interface ImportRow {
+  id: number
+  batchId: number
+  rowNo: number
+  propCode: string
+  crewName: string
+  startDateRaw: string
+  endDateRaw: string
+  remark: string
+  validateStatus: string
+  validateMessage: string
+  writeStatus: string
+  writeMessage: string
+  bindingId: number | null
+}
+
+export interface ImportBatchResult {
+  batch: ImportBatch
+  rows: ImportRow[]
+}

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import PropManager from '@/components/PropManager.vue'
 import CrewManager from '@/components/CrewManager.vue'
 import BindingManager from '@/components/BindingManager.vue'
+import OccupancyImport from '@/components/OccupancyImport.vue'
 import TimelineView from '@/components/TimelineView.vue'
 import ChangeLogView from '@/components/ChangeLogView.vue'
 
@@ -25,6 +26,9 @@ const activeTab = ref('binding')
         </el-tab-pane>
         <el-tab-pane label="档期绑定" name="binding">
           <BindingManager />
+        </el-tab-pane>
+        <el-tab-pane label="占用导入" name="import">
+          <OccupancyImport />
         </el-tab-pane>
         <el-tab-pane label="时间轴视图" name="timeline">
           <TimelineView />

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { ApiResponse, Prop, Crew, BindingDetail, ScheduleChangeLog, ConflictCheckResponse, BarcodeCheckResponse, PropCreateRequest, CrewCreateRequest, BindingCreateRequest, BindingUpdateRequest } from '@/types'
+import type { ApiResponse, Prop, Crew, BindingDetail, ScheduleChangeLog, ConflictCheckResponse, BarcodeCheckResponse, PropCreateRequest, CrewCreateRequest, BindingCreateRequest, BindingUpdateRequest, ImportBatch, ImportRow, ImportBatchResult } from '@/types'
 
 const api = axios.create({
   baseURL: '/api',
@@ -68,4 +68,25 @@ export const changeLogApi = {
   getAll: () => api.get<ApiResponse<ScheduleChangeLog[]>>('/bindings/logs'),
   getByBindingId: (bindingId: number) => api.get<ApiResponse<ScheduleChangeLog[]>>(`/bindings/logs/binding/${bindingId}`),
   getConflicts: () => api.get<ApiResponse<ScheduleChangeLog[]>>('/bindings/logs/conflicts')
+}
+
+export const occupancyImportApi = {
+  validate: (file: File, operator?: string) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post<ApiResponse<ImportBatchResult>>('/occupancy-import/validate', formData, {
+      params: { operator }
+    })
+  },
+  commit: (batchId: number, operator?: string) =>
+    api.post<ApiResponse<ImportBatchResult>>(`/occupancy-import/${batchId}/commit`, null, {
+      params: { operator }
+    }),
+  getBatches: () => api.get<ApiResponse<ImportBatch[]>>('/occupancy-import/batches'),
+  getRows: (batchId: number, validateStatus?: string, writeStatus?: string) => {
+    const params: Record<string, string> = {}
+    if (validateStatus) params.validateStatus = validateStatus
+    if (writeStatus) params.writeStatus = writeStatus
+    return api.get<ApiResponse<ImportRow[]>>(`/occupancy-import/batches/${batchId}/rows`, { params })
+  }
 }

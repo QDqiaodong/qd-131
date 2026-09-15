@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.stream.Collectors;
 
@@ -49,6 +50,13 @@ public class GlobalExceptionHandler {
         // 数据库唯一约束兜底（如并发重复提交相同道具编号），被拦截的记录不会入库
         log.warn("Data integrity violation: {}", e.getMessage());
         return ApiResponse.error(400, "道具编号重复，请勿重复登记");
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleMaxUploadSize(MaxUploadSizeExceededException e) {
+        log.warn("Upload size exceeded: {}", e.getMessage());
+        return ApiResponse.error(400, "上传文件超过大小限制（10MB），请拆分 CSV 后分批导入");
     }
     
     @ExceptionHandler(Exception.class)

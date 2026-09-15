@@ -32,4 +32,11 @@ public interface PropScheduleBindingRepository extends JpaRepository<PropSchedul
     @Query("SELECT b FROM PropScheduleBinding b WHERE b.crewId = :crewId AND b.status = 'active' " +
            "ORDER BY b.startDate")
     List<PropScheduleBinding> findActiveBindingsByCrewId(@Param("crewId") Long crewId);
+
+    @Query("SELECT b FROM PropScheduleBinding b WHERE b.status = 'active' " +
+           "AND b.endDate >= :today AND b.endDate <= :deadline " +
+           "ORDER BY b.endDate ASC, b.id ASC")
+    List<PropScheduleBinding> findExpiringBindings(
+            @Param("today") LocalDate today,
+            @Param("deadline") LocalDate deadline);
 }

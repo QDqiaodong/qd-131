@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import ExpiringBoard from '@/components/ExpiringBoard.vue'
 import PropManager from '@/components/PropManager.vue'
 import CrewManager from '@/components/CrewManager.vue'
 import BindingManager from '@/components/BindingManager.vue'
@@ -7,7 +8,7 @@ import OccupancyImport from '@/components/OccupancyImport.vue'
 import TimelineView from '@/components/TimelineView.vue'
 import ChangeLogView from '@/components/ChangeLogView.vue'
 
-const activeTab = ref('binding')
+const activeTab = ref('expiring')
 </script>
 
 <template>
@@ -15,9 +16,12 @@ const activeTab = ref('binding')
     <header class="app-header">
       <h1>影视外景基地拍摄道具剧组档期匹配绑定系统</h1>
     </header>
-    
+
     <nav class="app-nav">
       <el-tabs v-model="activeTab" type="border-card">
+        <el-tab-pane label="临期占用台" name="expiring">
+          <ExpiringBoard />
+        </el-tab-pane>
         <el-tab-pane label="道具管理" name="prop">
           <PropManager />
         </el-tab-pane>

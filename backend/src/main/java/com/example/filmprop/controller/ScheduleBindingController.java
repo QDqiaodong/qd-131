@@ -5,6 +5,7 @@ import com.example.filmprop.dto.request.BindingUpdateRequest;
 import com.example.filmprop.dto.response.ApiResponse;
 import com.example.filmprop.dto.response.BindingDetailResponse;
 import com.example.filmprop.dto.response.ConflictCheckResponse;
+import com.example.filmprop.dto.response.ExpiringBindingResponse;
 import com.example.filmprop.entity.ScheduleChangeLog;
 import com.example.filmprop.service.ScheduleBindingService;
 import jakarta.validation.Valid;
@@ -58,6 +59,12 @@ public class ScheduleBindingController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ApiResponse.success(bindingService.getBindingsInDateRange(startDate, endDate));
+    }
+
+    @GetMapping("/expiring")
+    public ApiResponse<List<ExpiringBindingResponse>> getExpiringBindings(
+            @RequestParam(required = false, defaultValue = "7") int days) {
+        return ApiResponse.success(bindingService.getExpiringBindings(days));
     }
     
     @GetMapping("/conflict-check")

@@ -43,6 +43,23 @@ export interface BindingDetail {
   updatedAt: string
 }
 
+export interface ExpiringBinding {
+  id: number
+  propId: number
+  propCode: string
+  propName: string
+  sceneType: string
+  crewId: number
+  crewName: string
+  projectName: string
+  startDate: string
+  endDate: string
+  remainingDays: number
+  status: string
+  bindingType: string
+  remark: string
+}
+
 export interface ScheduleChangeLog {
   id: number
   bindingId: number

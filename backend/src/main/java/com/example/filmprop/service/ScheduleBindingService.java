@@ -4,6 +4,7 @@ import com.example.filmprop.dto.request.BindingCreateRequest;
 import com.example.filmprop.dto.request.BindingUpdateRequest;
 import com.example.filmprop.dto.response.BindingDetailResponse;
 import com.example.filmprop.dto.response.ConflictCheckResponse;
+import com.example.filmprop.dto.response.ExpiringBindingResponse;
 import com.example.filmprop.entity.Crew;
 import com.example.filmprop.entity.Prop;
 import com.example.filmprop.entity.PropScheduleBinding;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -256,6 +258,42 @@ public class ScheduleBindingService {
         return bindingRepository.findBindingsInDateRange(startDate, endDate).stream()
                 .map(this::buildBindingDetail)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 临期占用台：查询未来 days 天内（含今天）要结束的生效中占用，
+     * 按结束日期升序返回，即剩余天数从少到多。
+     */
+    public List<ExpiringBindingResponse> getExpiringBindings(int days) {
+        if (days < 1) {
+            throw new IllegalArgumentException("临期天数必须大于等于1");
+        }
+        LocalDate today = LocalDate.now();
+        LocalDate deadline = today.plusDays(days);
+        return bindingRepository.findExpiringBindings(today, deadline).stream()
+                .map(binding -> buildExpiringBinding(binding, today))
+                .collect(Collectors.toList());
+    }
+
+    private ExpiringBindingResponse buildExpiringBinding(PropScheduleBinding binding, LocalDate today) {
+        Prop prop = propService.getPropById(binding.getPropId());
+        Crew crew = crewService.getCrewById(binding.getCrewId());
+        ExpiringBindingResponse response = new ExpiringBindingResponse();
+        response.setId(binding.getId());
+        response.setPropId(prop.getId());
+        response.setPropCode(prop.getPropCode());
+        response.setPropName(prop.getPropName());
+        response.setSceneType(prop.getSceneType());
+        response.setCrewId(crew.getId());
+        response.setCrewName(crew.getCrewName());
+        response.setProjectName(crew.getProjectName());
+        response.setStartDate(binding.getStartDate());
+        response.setEndDate(binding.getEndDate());
+        response.setRemainingDays(ChronoUnit.DAYS.between(today, binding.getEndDate()));
+        response.setStatus(binding.getStatus());
+        response.setBindingType(binding.getBindingType());
+        response.setRemark(binding.getRemark());
+        return response;
     }
     
     public BindingDetailResponse getBindingById(Long id) {

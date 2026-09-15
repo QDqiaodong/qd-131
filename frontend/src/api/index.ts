@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { ApiResponse, Prop, Crew, BindingDetail, ScheduleChangeLog, ConflictCheckResponse, BarcodeCheckResponse, PropCreateRequest, CrewCreateRequest, BindingCreateRequest, BindingUpdateRequest, ImportBatch, ImportRow, ImportBatchResult } from '@/types'
+import type { ApiResponse, Prop, Crew, BindingDetail, ExpiringBinding, ScheduleChangeLog, ConflictCheckResponse, BarcodeCheckResponse, PropCreateRequest, CrewCreateRequest, BindingCreateRequest, BindingUpdateRequest, ImportBatch, ImportRow, ImportBatchResult } from '@/types'
 
 const api = axios.create({
   baseURL: '/api',
@@ -48,9 +48,13 @@ export const bindingApi = {
   getByPropId: (propId: number) => api.get<ApiResponse<BindingDetail[]>>(`/bindings/prop/${propId}`),
   getByCrewId: (crewId: number) => api.get<ApiResponse<BindingDetail[]>>(`/bindings/crew/${crewId}`),
   getByCrewName: (crewName: string) => api.get<ApiResponse<BindingDetail[]>>(`/bindings/crew/name/${crewName}`),
-  getByDateRange: (startDate: string, endDate: string) => 
+  getByDateRange: (startDate: string, endDate: string) =>
     api.get<ApiResponse<BindingDetail[]>>(`/bindings/date-range`, {
       params: { startDate, endDate }
+    }),
+  getExpiring: (days = 7) =>
+    api.get<ApiResponse<ExpiringBinding[]>>('/bindings/expiring', {
+      params: { days }
     }),
   checkConflict: (propId: number, startDate: string, endDate: string, excludeBindingId?: number) =>
     api.get<ApiResponse<ConflictCheckResponse>>(`/bindings/conflict-check`, {
